@@ -9,6 +9,7 @@ import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.ChatMessageType;
 import dev.langchain4j.data.message.Content;
 import dev.langchain4j.data.message.ContentType;
+import dev.langchain4j.data.message.CustomMessage;
 import dev.langchain4j.data.message.ImageContent;
 import dev.langchain4j.data.message.TextContent;
 import dev.langchain4j.data.message.UserMessage;
@@ -112,7 +113,7 @@ class OllamaMessagesUtils {
                 .collect(Collectors.toList());
 
         return Message.builder()
-                .role(toOllamaRole(userMessage.type()))
+                .role(toOllamaRole(userMessage.type(), userMessage))
                 .content(text)
                 .images(ImageUtils.base64EncodeImageList(imageContents))
                 .build();
@@ -139,13 +140,13 @@ class OllamaMessagesUtils {
 
         }
         return Message.builder()
-                .role(toOllamaRole(chatMessage.type()))
+                .role(toOllamaRole(chatMessage.type(), chatMessage))
                 .content(chatMessage.text())
                 .toolCalls(toolCalls)
                 .build();
     }
 
-    private static Role toOllamaRole(ChatMessageType chatMessageType) {
+    private static Role toOllamaRole(ChatMessageType chatMessageType, ChatMessage chatMessage) {
         switch (chatMessageType) {
             case SYSTEM:
                 return Role.SYSTEM;
@@ -155,6 +156,10 @@ class OllamaMessagesUtils {
                 return Role.ASSISTANT;
             case TOOL_EXECUTION_RESULT:
                 return Role.TOOL;
+            case CUSTOM:
+                if (((CustomMessage) chatMessage).role() == "context") {
+                    return Role.CONTEXT;
+                }
             default:
                 throw new IllegalArgumentException("Unknown ChatMessageType: " + chatMessageType);
         }

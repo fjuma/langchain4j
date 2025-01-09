@@ -1,14 +1,5 @@
 package dev.langchain4j.data.message;
 
-import dev.langchain4j.agent.tool.ToolExecutionRequest;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
-
-import java.util.List;
-import java.util.stream.Stream;
-
 import static dev.langchain4j.data.message.ChatMessageDeserializer.messageFromJson;
 import static dev.langchain4j.data.message.ChatMessageDeserializer.messagesFromJson;
 import static dev.langchain4j.data.message.ChatMessageSerializer.messageToJson;
@@ -16,6 +7,16 @@ import static dev.langchain4j.data.message.UserMessage.userMessage;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
+
+import dev.langchain4j.agent.tool.ToolExecutionRequest;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class ChatMessageSerializerTest {
 
@@ -31,55 +32,48 @@ class ChatMessageSerializerTest {
     }
 
     static Stream<Arguments> should_serialize_and_deserialize_chat_message() {
+        LinkedHashMap<String, Object> attributes = new LinkedHashMap<>();
+        attributes.put("text", "The sky is blue.");
+        attributes.put("myAttribute", "myValue");
         return Stream.of(
-                Arguments.of(
-                        SystemMessage.from("hello"),
-                        "{\"text\":\"hello\",\"type\":\"SYSTEM\"}"
-                ),
+                Arguments.of(SystemMessage.from("hello"), "{\"text\":\"hello\",\"type\":\"SYSTEM\"}"),
                 Arguments.of(
                         UserMessage.from("hello"),
-                        "{\"contents\":[{\"text\":\"hello\",\"type\":\"TEXT\"}],\"type\":\"USER\"}"
-                ),
+                        "{\"contents\":[{\"text\":\"hello\",\"type\":\"TEXT\"}],\"type\":\"USER\"}"),
                 Arguments.of(
                         UserMessage.from("Klaus", "hello"),
-                        "{\"name\":\"Klaus\",\"contents\":[{\"text\":\"hello\",\"type\":\"TEXT\"}],\"type\":\"USER\"}"
-                ),
+                        "{\"name\":\"Klaus\",\"contents\":[{\"text\":\"hello\",\"type\":\"TEXT\"}],\"type\":\"USER\"}"),
                 Arguments.of(
                         UserMessage.from(ImageContent.from("http://image.url")),
-                        "{\"contents\":[{\"image\":{\"url\":\"http://image.url\"},\"detailLevel\":\"LOW\",\"type\":\"IMAGE\"}],\"type\":\"USER\"}"
-                ),
+                        "{\"contents\":[{\"image\":{\"url\":\"http://image.url\"},\"detailLevel\":\"LOW\",\"type\":\"IMAGE\"}],\"type\":\"USER\"}"),
                 Arguments.of(
                         UserMessage.from(ImageContent.from("aGVsbG8=", "image/png")),
-                        "{\"contents\":[{\"image\":{\"base64Data\":\"aGVsbG8\\u003d\",\"mimeType\":\"image/png\"},\"detailLevel\":\"LOW\",\"type\":\"IMAGE\"}],\"type\":\"USER\"}"
-                ),
+                        "{\"contents\":[{\"image\":{\"base64Data\":\"aGVsbG8\\u003d\",\"mimeType\":\"image/png\"},\"detailLevel\":\"LOW\",\"type\":\"IMAGE\"}],\"type\":\"USER\"}"),
                 Arguments.of(
                         UserMessage.from(AudioContent.from("bXAz", "audio/mp3")),
-                        "{\"contents\":[{\"audio\":{\"base64Data\":\"bXAz\",\"mimeType\":\"audio/mp3\"},\"type\":\"AUDIO\"}],\"type\":\"USER\"}"
-                ),
+                        "{\"contents\":[{\"audio\":{\"base64Data\":\"bXAz\",\"mimeType\":\"audio/mp3\"},\"type\":\"AUDIO\"}],\"type\":\"USER\"}"),
                 Arguments.of(
                         UserMessage.from(VideoContent.from("bXA0", "video/mp4")),
-                        "{\"contents\":[{\"video\":{\"base64Data\":\"bXA0\",\"mimeType\":\"video/mp4\"},\"type\":\"VIDEO\"}],\"type\":\"USER\"}"
-                ),
+                        "{\"contents\":[{\"video\":{\"base64Data\":\"bXA0\",\"mimeType\":\"video/mp4\"},\"type\":\"VIDEO\"}],\"type\":\"USER\"}"),
                 Arguments.of(
                         UserMessage.from(PdfFileContent.from("cGRm", "application/pdf")),
-                        "{\"contents\":[{\"pdfFile\":{\"base64Data\":\"cGRm\"},\"type\":\"PDF\"}],\"type\":\"USER\"}"
-                ),
-                Arguments.of(
-                        AiMessage.from("hello"),
-                        "{\"text\":\"hello\",\"type\":\"AI\"}"
-                ),
+                        "{\"contents\":[{\"pdfFile\":{\"base64Data\":\"cGRm\"},\"type\":\"PDF\"}],\"type\":\"USER\"}"),
+                Arguments.of(AiMessage.from("hello"), "{\"text\":\"hello\",\"type\":\"AI\"}"),
                 Arguments.of(
                         AiMessage.from(ToolExecutionRequest.builder()
                                 .name("weather")
                                 .arguments("{\"city\": \"Munich\"}")
                                 .build()),
-                        "{\"toolExecutionRequests\":[{\"name\":\"weather\",\"arguments\":\"{\\\"city\\\": \\\"Munich\\\"}\"}],\"type\":\"AI\"}"
-                ),
+                        "{\"toolExecutionRequests\":[{\"name\":\"weather\",\"arguments\":\"{\\\"city\\\": \\\"Munich\\\"}\"}],\"type\":\"AI\"}"),
                 Arguments.of(
                         ToolExecutionResultMessage.from("12345", "weather", "sunny"),
-                        "{\"id\":\"12345\",\"toolName\":\"weather\",\"text\":\"sunny\",\"type\":\"TOOL_EXECUTION_RESULT\"}"
-                )
-        );
+                        "{\"id\":\"12345\",\"toolName\":\"weather\",\"text\":\"sunny\",\"type\":\"TOOL_EXECUTION_RESULT\"}"),
+                Arguments.of(
+                        CustomMessage.from("context", Map.of("text", "The sky is blue.")),
+                        "{\"role\":\"context\",\"attributes\":{\"text\":\"The sky is blue.\"},\"type\":\"CUSTOM\"}"),
+                Arguments.of(
+                        CustomMessage.from("context", attributes),
+                        "{\"role\":\"context\",\"attributes\":{\"text\":\"The sky is blue.\", \"myAttribute\":\"myValue\"},\"type\":\"CUSTOM\"}"));
     }
 
     @Test
