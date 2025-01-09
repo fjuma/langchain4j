@@ -23,7 +23,12 @@ public enum ChatMessageType {
     /**
      * A message from a tool.
      */
-    TOOL_EXECUTION_RESULT(ToolExecutionResultMessage.class);
+    TOOL_EXECUTION_RESULT(ToolExecutionResultMessage.class),
+
+    /**
+     * The context used for retrieval augmented generation.
+     */
+    CONTEXT(ContextMessage.class);
 
     private final Class<? extends ChatMessage> messageClass;
 

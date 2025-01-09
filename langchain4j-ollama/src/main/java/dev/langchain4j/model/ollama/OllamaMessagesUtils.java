@@ -155,6 +155,8 @@ class OllamaMessagesUtils {
                 return Role.ASSISTANT;
             case TOOL_EXECUTION_RESULT:
                 return Role.TOOL;
+            case CONTEXT:
+                return Role.CONTEXT;
             default:
                 throw new IllegalArgumentException("Unknown ChatMessageType: " + chatMessageType);
         }
