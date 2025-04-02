@@ -29,6 +29,7 @@ import java.util.function.Function;
 public class ToolService {
 
     private static final int MAX_SEQUENTIAL_TOOL_EXECUTIONS = 100;
+    private static final String OBSERVATION = "Observation: ";
 
     private List<ToolSpecification> toolSpecifications;
     private Map<String, ToolExecutor> toolExecutors;
@@ -124,7 +125,8 @@ public class ToolService {
             ChatLanguageModel chatModel,
             ChatMemory chatMemory,
             Object memoryId,
-            Map<String, ToolExecutor> toolExecutors) {
+            Map<String, ToolExecutor> toolExecutors,
+            boolean isReactAgent) {
         TokenUsage tokenUsageAccumulator = chatResponse.metadata().tokenUsage();
         int executionsLeft = MAX_SEQUENTIAL_TOOL_EXECUTIONS;
         List<ToolExecution> toolExecutions = new ArrayList<>();
@@ -161,6 +163,13 @@ public class ToolService {
                         .request(toolExecutionRequest)
                         .result(toolExecutionResultMessage.text())
                         .build());
+
+                if (isReactAgent) {
+                    toolExecutionResultMessage = ToolExecutionResultMessage.from(
+                            toolExecutionResultMessage.id(),
+                            toolExecutionResultMessage.toolName(),
+                            OBSERVATION + toolExecutionResultMessage.text());
+                }
 
                 if (chatMemory != null) {
                     chatMemory.add(toolExecutionResultMessage);

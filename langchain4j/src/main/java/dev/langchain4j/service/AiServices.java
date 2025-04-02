@@ -136,6 +136,21 @@ public abstract class AiServices<T> {
     private boolean contentRetrieverSet = false;
     private boolean retrievalAugmentorSet = false;
 
+    private static final Function<Object, String> DEFAULT_REACT_SYSTEM_MESSAGE_PROVIDER =
+            x -> "Answer the question using the following format:\n"
+                    + "Thought: I need to use a tool to help me answer the question\n"
+                    + "Action: tool name if using a tool\n"
+                    + "Action Input: the input to the tool\n"
+                    + "Please ALWAYS start with a Thought.\n"
+                    + "If this format is used, the tool will respond in the following format:\n"
+                    + "Observation: tool response\n"
+                    + "You should keep repeating the above format until you have enough information to answer the question without using any more tools. "
+                    + "At that point, you MUST respond in one of the following two formats:\n"
+                    + "Thought: I can answer without using any more tools.\n"
+                    + "Answer: [your answer here]\n"
+                    + "Thought: I cannot answer the question with the provided tools.\n"
+                    + "Answer: Sorry, I do not know the answer.\n";
+
     protected AiServices(AiServiceContext context) {
         this.context = context;
     }
@@ -395,6 +410,18 @@ public abstract class AiServices<T> {
         }
         retrievalAugmentorSet = true;
         context.retrievalAugmentor = ensureNotNull(retrievalAugmentor, "retrievalAugmentor");
+        return this;
+    }
+
+    /**
+     * Configures the AI service to behave as a ReAct agent.
+     *
+     * @param isReactAgent {@code true} if the AI service should behave as a ReAct agent and {@code false} otherwise
+     * @return builder
+     */
+    public AiServices<T> isReactAgent(boolean isReactAgent) {
+        context.isReactAgent = isReactAgent;
+        this.systemMessageProvider(DEFAULT_REACT_SYSTEM_MESSAGE_PROVIDER);
         return this;
     }
 

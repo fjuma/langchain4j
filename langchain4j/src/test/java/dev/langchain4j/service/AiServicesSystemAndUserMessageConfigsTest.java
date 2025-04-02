@@ -1,22 +1,33 @@
 package dev.langchain4j.service;
 
-import dev.langchain4j.model.chat.ChatLanguageModel;
-import dev.langchain4j.model.chat.mock.ChatModelMock;
-import dev.langchain4j.model.chat.request.ChatRequest;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Spy;
-import org.mockito.junit.jupiter.MockitoExtension;
-
 import static dev.langchain4j.data.message.SystemMessage.systemMessage;
 import static dev.langchain4j.data.message.UserMessage.userMessage;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+
+import dev.langchain4j.agent.tool.Tool;
+import dev.langchain4j.agent.tool.ToolSpecification;
+import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.data.message.ToolExecutionResultMessage;
+import dev.langchain4j.model.chat.ChatLanguageModel;
+import dev.langchain4j.model.chat.mock.ChatModelMock;
+import dev.langchain4j.model.chat.request.ChatRequest;
+import dev.langchain4j.model.chat.request.json.JsonEnumSchema;
+import dev.langchain4j.model.chat.request.json.JsonObjectSchema;
+import dev.langchain4j.model.chat.request.json.JsonSchemaElement;
+import dev.langchain4j.model.chat.request.json.JsonStringSchema;
+import java.util.LinkedHashMap;
+import java.util.List;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class AiServicesSystemAndUserMessageConfigsTest {
@@ -136,6 +147,9 @@ class AiServicesSystemAndUserMessageConfigsTest {
         @SystemMessage("This message should take precedence over the one provided by systemMessageProvider")
         String chat21(String userMessage);
 
+        @UserMessage("What is the captial of Germany?")
+        String chat22();
+
         // illegal
 
         @SystemMessage("Given a name of a country, answer with {{answerInstructions}}")
@@ -149,9 +163,8 @@ class AiServicesSystemAndUserMessageConfigsTest {
     void system_message_configuration_1() {
 
         // given
-        AiService aiService = AiServices.builder(AiService.class)
-                .chatLanguageModel(model)
-                .build();
+        AiService aiService =
+                AiServices.builder(AiService.class).chatLanguageModel(model).build();
 
         // when-then
         assertThat(aiService.chat1("Country: Germany")).containsIgnoringCase("Berlin");
@@ -167,9 +180,8 @@ class AiServicesSystemAndUserMessageConfigsTest {
     void system_message_configuration_2() {
 
         // given
-        AiService aiService = AiServices.builder(AiService.class)
-                .chatLanguageModel(model)
-                .build();
+        AiService aiService =
+                AiServices.builder(AiService.class).chatLanguageModel(model).build();
 
         // when-then
         assertThat(aiService.chat2("Country: Germany")).containsIgnoringCase("Berlin");
@@ -185,9 +197,8 @@ class AiServicesSystemAndUserMessageConfigsTest {
     void system_message_configuration_3() {
 
         // given
-        AiService aiService = AiServices.builder(AiService.class)
-                .chatLanguageModel(model)
-                .build();
+        AiService aiService =
+                AiServices.builder(AiService.class).chatLanguageModel(model).build();
 
         // when-then
         assertThat(aiService.chat3("a name of it's capital", "Country: Germany"))
@@ -204,9 +215,8 @@ class AiServicesSystemAndUserMessageConfigsTest {
     void system_message_configuration_4() {
 
         // given
-        AiService aiService = AiServices.builder(AiService.class)
-                .chatLanguageModel(model)
-                .build();
+        AiService aiService =
+                AiServices.builder(AiService.class).chatLanguageModel(model).build();
 
         // when-then
         assertThat(aiService.chat4("Country: {{country}}", "Germany")).containsIgnoringCase("Berlin");
@@ -222,9 +232,8 @@ class AiServicesSystemAndUserMessageConfigsTest {
     void system_message_configuration_5() {
 
         // given
-        AiService aiService = AiServices.builder(AiService.class)
-                .chatLanguageModel(model)
-                .build();
+        AiService aiService =
+                AiServices.builder(AiService.class).chatLanguageModel(model).build();
 
         // when-then
         assertThat(aiService.chat5("a name of it's capital", "Country: {{country}}", "Germany"))
@@ -241,9 +250,8 @@ class AiServicesSystemAndUserMessageConfigsTest {
     void system_message_configuration_6() {
 
         // given
-        AiService aiService = AiServices.builder(AiService.class)
-                .chatLanguageModel(model)
-                .build();
+        AiService aiService =
+                AiServices.builder(AiService.class).chatLanguageModel(model).build();
 
         // when-then
         assertThat(aiService.chat6()).containsIgnoringCase("Berlin");
@@ -259,9 +267,8 @@ class AiServicesSystemAndUserMessageConfigsTest {
     void system_message_configuration_7() {
 
         // given
-        AiService aiService = AiServices.builder(AiService.class)
-                .chatLanguageModel(model)
-                .build();
+        AiService aiService =
+                AiServices.builder(AiService.class).chatLanguageModel(model).build();
 
         // when-then
         assertThat(aiService.chat7("a name of it's capital")).containsIgnoringCase("Berlin");
@@ -277,9 +284,8 @@ class AiServicesSystemAndUserMessageConfigsTest {
     void system_message_configuration_8() {
 
         // given
-        AiService aiService = AiServices.builder(AiService.class)
-                .chatLanguageModel(model)
-                .build();
+        AiService aiService =
+                AiServices.builder(AiService.class).chatLanguageModel(model).build();
 
         // when-then
         assertThat(aiService.chat8("Germany")).containsIgnoringCase("Berlin");
@@ -295,9 +301,8 @@ class AiServicesSystemAndUserMessageConfigsTest {
     void system_message_configuration_9() {
 
         // given
-        AiService aiService = AiServices.builder(AiService.class)
-                .chatLanguageModel(model)
-                .build();
+        AiService aiService =
+                AiServices.builder(AiService.class).chatLanguageModel(model).build();
 
         // when-then
         assertThat(aiService.chat9("Germany")).containsIgnoringCase("Berlin");
@@ -313,9 +318,8 @@ class AiServicesSystemAndUserMessageConfigsTest {
     void system_message_configuration_10() {
 
         // given
-        AiService aiService = AiServices.builder(AiService.class)
-                .chatLanguageModel(model)
-                .build();
+        AiService aiService =
+                AiServices.builder(AiService.class).chatLanguageModel(model).build();
 
         // when-then
         assertThat(aiService.chat10("a name of it's capital", "Germany")).containsIgnoringCase("Berlin");
@@ -540,12 +544,49 @@ class AiServicesSystemAndUserMessageConfigsTest {
     }
 
     @Test
-    void illegal_system_message_configuration_1() {
+    void system_message_configuration_22() {
+        ChatLanguageModel chatLanguageModel = new ChatModelMock(chatRequest -> {
+            List<ToolExecutionResultMessage> toolResults = chatRequest.messages().stream()
+                    .filter(ToolExecutionResultMessage.class::isInstance)
+                    .map(ToolExecutionResultMessage.class::cast)
+                    .toList();
+            if (toolResults.isEmpty()) {
+                return AiMessage.from(
+                        "Thought: I need to use a tool\nAction: currentTemperature\nAction Input: {\"city\": \"Berlin\", \"unit\": \"CELCIUS\"}");
+            } else {
+                return AiMessage.from("Thought: I can answer without using any more tools.\n Answer: "
+                        + toolResults.get(0).text().substring("Observation: ".length()));
+            }
+        });
+
+        WeatherService weatherService = spy(new WeatherService());
 
         // given
         AiService aiService = AiServices.builder(AiService.class)
-                .chatLanguageModel(model)
+                .chatLanguageModel(chatLanguageModel)
+                .tools(weatherService)
+                .isReactAgent(true)
                 .build();
+
+        // when-then
+        assertThat(aiService.chat22()).contains("37");
+
+        // given
+        aiService = AiServices.builder(AiService.class)
+                .chatLanguageModel(chatLanguageModel)
+                .tools(weatherService)
+                .build();
+
+        // when-then
+        assertThat(aiService.chat22()).doesNotContain("37");
+    }
+
+    @Test
+    void illegal_system_message_configuration_1() {
+
+        // given
+        AiService aiService =
+                AiServices.builder(AiService.class).chatLanguageModel(model).build();
 
         // when-then
         assertThatThrownBy(() -> aiService.illegalChat1("a name of it's capital", "Country: Germany"))
@@ -568,5 +609,37 @@ class AiServicesSystemAndUserMessageConfigsTest {
                 .isExactlyInstanceOf(IllegalConfigurationException.class)
                 .hasMessage("Parameter 'arg1' of method 'illegalChat2' should be annotated "
                         + "with @V or @UserMessage or @UserName or @MemoryId");
+    }
+
+    static class WeatherService {
+
+        static ToolSpecification EXPECTED_SPECIFICATION = ToolSpecification.builder()
+                .name("currentTemperature")
+                .parameters(JsonObjectSchema.builder()
+                        .addProperties(new LinkedHashMap<String, JsonSchemaElement>() {
+                            {
+                                put("arg0", new JsonStringSchema());
+                                put(
+                                        "arg1",
+                                        JsonEnumSchema.builder()
+                                                .enumValues("CELSIUS", "fahrenheit", "Kelvin")
+                                                .build());
+                            }
+                        })
+                        .required("arg0", "arg1")
+                        .build())
+                .build();
+
+        @Tool
+        int currentTemperature(String city, AiServicesWithToolsIT.TemperatureUnit unit) {
+            System.out.printf("called currentTemperature(%s, %s)%n", city, unit);
+            return 37;
+        }
+    }
+
+    enum TemperatureUnit {
+        CELSIUS,
+        fahrenheit,
+        Kelvin
     }
 }

@@ -31,6 +31,8 @@ public class AiServiceContext {
 
     public Function<Object, Optional<String>> systemMessageProvider = DEFAULT_MESSAGE_PROVIDER;
 
+    public boolean isReactAgent;
+
     public AiServiceContext(Class<?> aiServiceClass) {
         this.aiServiceClass = aiServiceClass;
     }
