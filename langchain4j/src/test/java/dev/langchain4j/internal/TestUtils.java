@@ -1,21 +1,20 @@
 package dev.langchain4j.internal;
 
-import dev.langchain4j.data.message.AiMessage;
-import dev.langchain4j.data.message.SystemMessage;
-import dev.langchain4j.data.message.UserMessage;
-import dev.langchain4j.model.openai.OpenAiTokenizer;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import static dev.langchain4j.data.message.AiMessage.aiMessage;
 import static dev.langchain4j.data.message.SystemMessage.systemMessage;
 import static dev.langchain4j.data.message.UserMessage.userMessage;
 import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_3_5_TURBO;
 import static org.assertj.core.api.Assertions.assertThat;
+
+import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.data.message.SystemMessage;
+import dev.langchain4j.data.message.UserMessage;
+import dev.langchain4j.model.openai.OpenAiTokenizer;
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 public class TestUtils {
 
@@ -74,17 +73,11 @@ public class TestUtils {
 
     @Test
     void should_repeat_n_times() {
-        assertThat(repeat("word", 1))
-                .hasSize(1)
-                .containsExactly("word");
+        assertThat(repeat("word", 1)).hasSize(1).containsExactly("word");
 
-        assertThat(repeat("word", 2))
-                .hasSize(2)
-                .containsExactly("word", "word");
+        assertThat(repeat("word", 2)).hasSize(2).containsExactly("word", "word");
 
-        assertThat(repeat("word", 3))
-                .hasSize(3)
-                .containsExactly("word", "word", "word");
+        assertThat(repeat("word", 3)).hasSize(3).containsExactly("word", "word", "word");
     }
 
     public static List<String> repeat(String s, int n) {

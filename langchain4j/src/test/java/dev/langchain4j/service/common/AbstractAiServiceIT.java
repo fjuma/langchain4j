@@ -1,5 +1,12 @@
 package dev.langchain4j.service.common;
 
+import static dev.langchain4j.model.output.FinishReason.STOP;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+
 import dev.langchain4j.agent.tool.Tool;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.ChatLanguageModel;
@@ -7,19 +14,11 @@ import dev.langchain4j.model.chat.request.ChatRequest;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.Result;
+import java.util.List;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.condition.EnabledIf;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-
-import java.util.List;
-
-import static dev.langchain4j.model.output.FinishReason.STOP;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 /**
  * This test makes sure that all {@link ChatLanguageModel} implementations behave consistently
@@ -46,9 +45,8 @@ public abstract class AbstractAiServiceIT {
         // given
         model = spy(model);
 
-        Assistant assistant = AiServices.builder(Assistant.class)
-                .chatLanguageModel(model)
-                .build();
+        Assistant assistant =
+                AiServices.builder(Assistant.class).chatLanguageModel(model).build();
 
         String userMessage = "What is the capital of Germany?";
 
@@ -73,7 +71,10 @@ public abstract class AbstractAiServiceIT {
 
         assertThat(result.toolExecutions()).isEmpty();
 
-        verify(model).chat(ChatRequest.builder().messages(UserMessage.from(userMessage)).build());
+        verify(model)
+                .chat(ChatRequest.builder()
+                        .messages(UserMessage.from(userMessage))
+                        .build());
     }
 
     // TODO more tests for tools
@@ -90,11 +91,11 @@ public abstract class AbstractAiServiceIT {
         model = spy(model);
 
         enum Weather {
-            SUNNY, RAINY
+            SUNNY,
+            RAINY
         }
 
-        record WeatherReport(String city, Weather weather) {
-        }
+        record WeatherReport(String city, Weather weather) {}
 
         interface WeatherAssistant {
 
@@ -126,31 +127,31 @@ public abstract class AbstractAiServiceIT {
         assertThat(weatherReport.weather()).isEqualTo(Weather.SUNNY);
 
         // TODO
-//        verify(model).chat(ChatRequest.builder()
-//                .messages(UserMessage.from(userMessage))
-//                .parameters(ChatParameters.builder()
-//                        .toolSpecifications(ToolSpecifications.toolSpecificationsFrom(WeatherTools.class))
-//                        .responseFormat(ResponseFormat.builder()
-//                                .type(ResponseFormatType.JSON)
-//                                .jsonSchema(JsonSchemas.jsonSchemaFrom(WeatherReport.class).get())
-//                                .build())
-//                        .build())
-//                .build());
-//        verify(model).chat(ChatRequest.builder()
-//                .messages(
-//                        UserMessage.from(userMessage),
-//                        AiMessage.from(...),
-//                        ToolExecutionResultMessage.from(...)
-//                )
-//                .parameters(ChatParameters.builder()
-//                .toolSpecifications(ToolSpecifications.toolSpecificationsFrom(WeatherTools.class))
-//                .responseFormat(ResponseFormat.builder()
-//                        .type(ResponseFormatType.JSON)
-//                        .jsonSchema(JsonSchemas.jsonSchemaFrom(WeatherReport.class).get())
-//                        .build())
-//                .build())
-//                .build());
-//        verifyNoMoreInteractions(model);
+        //        verify(model).chat(ChatRequest.builder()
+        //                .messages(UserMessage.from(userMessage))
+        //                .parameters(ChatParameters.builder()
+        //                        .toolSpecifications(ToolSpecifications.toolSpecificationsFrom(WeatherTools.class))
+        //                        .responseFormat(ResponseFormat.builder()
+        //                                .type(ResponseFormatType.JSON)
+        //                                .jsonSchema(JsonSchemas.jsonSchemaFrom(WeatherReport.class).get())
+        //                                .build())
+        //                        .build())
+        //                .build());
+        //        verify(model).chat(ChatRequest.builder()
+        //                .messages(
+        //                        UserMessage.from(userMessage),
+        //                        AiMessage.from(...),
+        //                        ToolExecutionResultMessage.from(...)
+        //                )
+        //                .parameters(ChatParameters.builder()
+        //                .toolSpecifications(ToolSpecifications.toolSpecificationsFrom(WeatherTools.class))
+        //                .responseFormat(ResponseFormat.builder()
+        //                        .type(ResponseFormatType.JSON)
+        //                        .jsonSchema(JsonSchemas.jsonSchemaFrom(WeatherReport.class).get())
+        //                        .build())
+        //                .build())
+        //                .build());
+        //        verifyNoMoreInteractions(model);
 
         if (assertToolInteractions()) {
             verify(weatherTools).getWeather("Munich");

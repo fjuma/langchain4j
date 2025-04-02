@@ -1,5 +1,8 @@
 package dev.langchain4j.service;
 
+import static dev.langchain4j.internal.Utils.copyIfNotNull;
+import static dev.langchain4j.internal.ValidationUtils.ensureNotNull;
+
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.data.message.AiMessage;
@@ -12,16 +15,12 @@ import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.service.tool.ToolExecution;
 import dev.langchain4j.service.tool.ToolExecutor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-
-import static dev.langchain4j.internal.Utils.copyIfNotNull;
-import static dev.langchain4j.internal.ValidationUtils.ensureNotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Handles response from a language model for AI Service that is streamed token-by-token.
@@ -46,16 +45,17 @@ class AiServiceStreamingResponseHandler implements StreamingChatResponseHandler 
     private final List<ToolSpecification> toolSpecifications;
     private final Map<String, ToolExecutor> toolExecutors;
 
-    AiServiceStreamingResponseHandler(AiServiceContext context,
-                                      Object memoryId,
-                                      Consumer<String> partialResponseHandler,
-                                      Consumer<ToolExecution> toolExecutionHandler,
-                                      Consumer<ChatResponse> completeResponseHandler,
-                                      Consumer<Throwable> errorHandler,
-                                      List<ChatMessage> temporaryMemory,
-                                      TokenUsage tokenUsage,
-                                      List<ToolSpecification> toolSpecifications,
-                                      Map<String, ToolExecutor> toolExecutors) {
+    AiServiceStreamingResponseHandler(
+            AiServiceContext context,
+            Object memoryId,
+            Consumer<String> partialResponseHandler,
+            Consumer<ToolExecution> toolExecutionHandler,
+            Consumer<ChatResponse> completeResponseHandler,
+            Consumer<Throwable> errorHandler,
+            List<ChatMessage> temporaryMemory,
+            TokenUsage tokenUsage,
+            List<ToolSpecification> toolSpecifications,
+            Map<String, ToolExecutor> toolExecutors) {
         this.context = ensureNotNull(context, "context");
         this.memoryId = ensureNotNull(memoryId, "memoryId");
 
@@ -87,10 +87,8 @@ class AiServiceStreamingResponseHandler implements StreamingChatResponseHandler 
                 String toolName = toolExecutionRequest.name();
                 ToolExecutor toolExecutor = toolExecutors.get(toolName);
                 String toolExecutionResult = toolExecutor.execute(toolExecutionRequest, memoryId);
-                ToolExecutionResultMessage toolExecutionResultMessage = ToolExecutionResultMessage.from(
-                        toolExecutionRequest,
-                        toolExecutionResult
-                );
+                ToolExecutionResultMessage toolExecutionResultMessage =
+                        ToolExecutionResultMessage.from(toolExecutionRequest, toolExecutionResult);
                 addToMemory(toolExecutionResultMessage);
 
                 if (toolExecutionHandler != null) {
@@ -117,8 +115,7 @@ class AiServiceStreamingResponseHandler implements StreamingChatResponseHandler 
                     temporaryMemory,
                     TokenUsage.sum(tokenUsage, completeResponse.metadata().tokenUsage()),
                     toolSpecifications,
-                    toolExecutors
-            );
+                    toolExecutors);
 
             context.streamingChatModel.chat(chatRequest, handler);
         } else {
@@ -129,7 +126,8 @@ class AiServiceStreamingResponseHandler implements StreamingChatResponseHandler 
                                 // TODO copy model-specific metadata
                                 .id(completeResponse.metadata().id())
                                 .modelName(completeResponse.metadata().modelName())
-                                .tokenUsage(TokenUsage.sum(tokenUsage, completeResponse.metadata().tokenUsage()))
+                                .tokenUsage(TokenUsage.sum(
+                                        tokenUsage, completeResponse.metadata().tokenUsage()))
                                 .finishReason(completeResponse.metadata().finishReason())
                                 .build())
                         .build();
@@ -148,9 +146,7 @@ class AiServiceStreamingResponseHandler implements StreamingChatResponseHandler 
     }
 
     private List<ChatMessage> messagesToSend(Object memoryId) {
-        return context.hasChatMemory()
-                ? context.chatMemory(memoryId).messages()
-                : temporaryMemory;
+        return context.hasChatMemory() ? context.chatMemory(memoryId).messages() : temporaryMemory;
     }
 
     @Override

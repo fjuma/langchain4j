@@ -1,14 +1,14 @@
 package dev.langchain4j.chain;
 
+import static dev.langchain4j.data.message.UserMessage.userMessage;
+import static dev.langchain4j.internal.ValidationUtils.ensureNotBlank;
+import static dev.langchain4j.internal.ValidationUtils.ensureNotNull;
+
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.service.AiServices;
-
-import static dev.langchain4j.data.message.UserMessage.userMessage;
-import static dev.langchain4j.internal.ValidationUtils.ensureNotBlank;
-import static dev.langchain4j.internal.ValidationUtils.ensureNotNull;
 
 /**
  * A chain for conversing with a specified {@link ChatLanguageModel} while maintaining a memory of the conversation.
@@ -46,8 +46,7 @@ public class ConversationalChain implements Chain<String, String> {
         private ChatLanguageModel chatLanguageModel;
         private ChatMemory chatMemory;
 
-        ConversationalChainBuilder() {
-        }
+        ConversationalChainBuilder() {}
 
         public ConversationalChainBuilder chatLanguageModel(ChatLanguageModel chatLanguageModel) {
             this.chatLanguageModel = chatLanguageModel;
@@ -64,7 +63,8 @@ public class ConversationalChain implements Chain<String, String> {
         }
 
         public String toString() {
-            return "ConversationalChain.ConversationalChainBuilder(chatLanguageModel=" + this.chatLanguageModel + ", chatMemory=" + this.chatMemory + ")";
+            return "ConversationalChain.ConversationalChainBuilder(chatLanguageModel=" + this.chatLanguageModel
+                    + ", chatMemory=" + this.chatMemory + ")";
         }
     }
 }

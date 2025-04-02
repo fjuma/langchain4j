@@ -2,7 +2,6 @@ package dev.langchain4j.service.tool;
 
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.internal.Json;
-
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Map;
@@ -16,14 +15,13 @@ class ToolExecutionRequestUtil {
 
     private static final Pattern TRAILING_COMMA_PATTERN = Pattern.compile(",(\\s*[}\\]])");
 
-    private ToolExecutionRequestUtil() {
-    }
+    private ToolExecutionRequestUtil() {}
 
     private static final Type MAP_TYPE = new ParameterizedType() {
 
         @Override
         public Type[] getActualTypeArguments() {
-            return new Type[]{String.class, Object.class};
+            return new Type[] {String.class, Object.class};
         }
 
         @Override

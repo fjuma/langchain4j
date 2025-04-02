@@ -1,16 +1,17 @@
 package dev.langchain4j.service.output;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.spy;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.model.output.Response;
 import dev.langchain4j.model.output.structured.Description;
 import dev.langchain4j.service.IllegalConfigurationException;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.stubbing.Answer;
-
 import java.io.Serializable;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
@@ -24,12 +25,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.spy;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.stubbing.Answer;
 
 class ServiceOutputParserTest {
 
@@ -64,23 +63,19 @@ class ServiceOutputParserTest {
                 AiMessage.aiMessage("2024-07-02T11:38:00"), LocalDateTime.class, LocalDateTimeOutputParser.class);
         testWhetherProperOutputParserWasCalled(
                 AiMessage.aiMessage(Weather.SUNNY.name()), Weather.class, EnumOutputParser.class);
-        Type listOfWeatherEnumTypes = new TypeReference<List<Weather>>() {
-        }.getType();
+        Type listOfWeatherEnumTypes = new TypeReference<List<Weather>>() {}.getType();
         testWhetherProperOutputParserWasCalled(
                 AiMessage.aiMessage("SUNNY\nCLOUDY"), listOfWeatherEnumTypes, EnumListOutputParser.class);
 
-        Type setOfWeatherEnumTypes = new TypeReference<Set<Weather>>() {
-        }.getType();
+        Type setOfWeatherEnumTypes = new TypeReference<Set<Weather>>() {}.getType();
         testWhetherProperOutputParserWasCalled(
                 AiMessage.aiMessage("SUNNY\nCLOUDY"), setOfWeatherEnumTypes, EnumSetOutputParser.class);
 
-        Type listOfStringsType = new TypeReference<List<String>>() {
-        }.getType();
+        Type listOfStringsType = new TypeReference<List<String>>() {}.getType();
         testWhetherProperOutputParserWasCalled(
                 AiMessage.aiMessage("SUNNY\nCLOUDY"), listOfStringsType, StringListOutputParser.class);
 
-        Type setOfStringsType = new TypeReference<Set<String>>() {
-        }.getType();
+        Type setOfStringsType = new TypeReference<Set<String>>() {}.getType();
         testWhetherProperOutputParserWasCalled(
                 AiMessage.aiMessage("SUNNY\nCLOUDY"), setOfStringsType, StringSetOutputParser.class);
     }

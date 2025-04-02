@@ -1,5 +1,15 @@
 package dev.langchain4j.service.common;
 
+import static dev.langchain4j.data.message.UserMessage.userMessage;
+import static dev.langchain4j.internal.Utils.generateUUIDFrom;
+import static dev.langchain4j.model.chat.request.ResponseFormatType.JSON;
+import static dev.langchain4j.service.common.AbstractAiServiceWithJsonSchemaIT.PersonExtractor3.MaritalStatus.SINGLE;
+import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.chat.request.ChatRequest;
 import dev.langchain4j.model.chat.request.ResponseFormat;
@@ -12,11 +22,6 @@ import dev.langchain4j.model.chat.request.json.JsonSchema;
 import dev.langchain4j.model.chat.request.json.JsonStringSchema;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.Result;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.condition.EnabledIf;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -25,23 +30,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-
-import static dev.langchain4j.data.message.UserMessage.userMessage;
-import static dev.langchain4j.internal.Utils.generateUUIDFrom;
-import static dev.langchain4j.model.chat.request.ResponseFormatType.JSON;
-import static dev.langchain4j.service.common.AbstractAiServiceWithJsonSchemaIT.PersonExtractor3.MaritalStatus.SINGLE;
-import static java.util.Collections.singletonList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.condition.EnabledIf;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 @TestInstance(PER_CLASS)
 public abstract class AbstractAiServiceWithJsonSchemaIT {
     // TODO test the same for streaming models
 
     protected abstract List<ChatLanguageModel> models();
-
 
     interface PersonExtractor1 {
 
@@ -492,11 +490,9 @@ public abstract class AbstractAiServiceWithJsonSchemaIT {
     @MethodSource("models")
     protected void should_extract_pojo_with_set_of_pojos(ChatLanguageModel model) {
 
-        record Pet(String name) {
-        }
+        record Pet(String name) {}
 
-        record Person(String name, Set<Pet> pets) {
-        }
+        record Person(String name, Set<Pet> pets) {}
 
         interface PersonExtractor {
 
@@ -514,10 +510,7 @@ public abstract class AbstractAiServiceWithJsonSchemaIT {
         Person person = personExtractor.extractPersonFrom(text);
 
         // then
-        assertThat(person).isEqualTo(new Person("Klaus", Set.of(
-                new Pet("Peanut"),
-                new Pet("Muffin")
-        )));
+        assertThat(person).isEqualTo(new Person("Klaus", Set.of(new Pet("Peanut"), new Pet("Muffin"))));
 
         verify(model)
                 .chat(ChatRequest.builder()
@@ -781,103 +774,82 @@ public abstract class AbstractAiServiceWithJsonSchemaIT {
                                                         put(
                                                                 "birthDate",
                                                                 JsonObjectSchema.builder()
-                                                                        .addProperties(
-                                                                                new LinkedHashMap<>() {
-                                                                                    {
-                                                                                        put(
-                                                                                                "year",
-                                                                                                new JsonIntegerSchema());
-                                                                                        put(
-                                                                                                "month",
-                                                                                                new JsonIntegerSchema());
-                                                                                        put(
-                                                                                                "day",
-                                                                                                new JsonIntegerSchema());
-                                                                                    }
-                                                                                })
+                                                                        .addProperties(new LinkedHashMap<>() {
+                                                                            {
+                                                                                put("year", new JsonIntegerSchema());
+                                                                                put("month", new JsonIntegerSchema());
+                                                                                put("day", new JsonIntegerSchema());
+                                                                            }
+                                                                        })
                                                                         .required("year", "month", "day")
                                                                         .build());
                                                         put(
                                                                 "birthTime",
                                                                 JsonObjectSchema.builder()
-                                                                        .addProperties(
-                                                                                new LinkedHashMap<>() {
-                                                                                    {
-                                                                                        put(
-                                                                                                "hour",
-                                                                                                new JsonIntegerSchema());
-                                                                                        put(
-                                                                                                "minute",
-                                                                                                new JsonIntegerSchema());
-                                                                                        put(
-                                                                                                "second",
-                                                                                                new JsonIntegerSchema());
-                                                                                        put(
-                                                                                                "nano",
-                                                                                                new JsonIntegerSchema());
-                                                                                    }
-                                                                                })
-                                                                        .required(
-                                                                                "hour", "minute", "second", "nano")
+                                                                        .addProperties(new LinkedHashMap<>() {
+                                                                            {
+                                                                                put("hour", new JsonIntegerSchema());
+                                                                                put("minute", new JsonIntegerSchema());
+                                                                                put("second", new JsonIntegerSchema());
+                                                                                put("nano", new JsonIntegerSchema());
+                                                                            }
+                                                                        })
+                                                                        .required("hour", "minute", "second", "nano")
                                                                         .build());
                                                         put(
                                                                 "birthDateTime",
                                                                 JsonObjectSchema.builder()
-                                                                        .addProperties(
-                                                                                new LinkedHashMap<>() {
-                                                                                    {
-                                                                                        put(
-                                                                                                "date",
-                                                                                                JsonObjectSchema
-                                                                                                        .builder()
-                                                                                                        .addProperties(
-                                                                                                                new LinkedHashMap<>() {
-                                                                                                                    {
-                                                                                                                        put(
-                                                                                                                                "year",
-                                                                                                                                new JsonIntegerSchema());
-                                                                                                                        put(
-                                                                                                                                "month",
-                                                                                                                                new JsonIntegerSchema());
-                                                                                                                        put(
-                                                                                                                                "day",
-                                                                                                                                new JsonIntegerSchema());
-                                                                                                                    }
-                                                                                                                })
-                                                                                                        .required(
-                                                                                                                "year",
-                                                                                                                "month",
-                                                                                                                "day")
-                                                                                                        .build());
-                                                                                        put(
-                                                                                                "time",
-                                                                                                JsonObjectSchema
-                                                                                                        .builder()
-                                                                                                        .addProperties(
-                                                                                                                new LinkedHashMap<>() {
-                                                                                                                    {
-                                                                                                                        put(
-                                                                                                                                "hour",
-                                                                                                                                new JsonIntegerSchema());
-                                                                                                                        put(
-                                                                                                                                "minute",
-                                                                                                                                new JsonIntegerSchema());
-                                                                                                                        put(
-                                                                                                                                "second",
-                                                                                                                                new JsonIntegerSchema());
-                                                                                                                        put(
-                                                                                                                                "nano",
-                                                                                                                                new JsonIntegerSchema());
-                                                                                                                    }
-                                                                                                                })
-                                                                                                        .required(
-                                                                                                                "hour",
-                                                                                                                "minute",
-                                                                                                                "second",
-                                                                                                                "nano")
-                                                                                                        .build());
-                                                                                    }
-                                                                                })
+                                                                        .addProperties(new LinkedHashMap<>() {
+                                                                            {
+                                                                                put(
+                                                                                        "date",
+                                                                                        JsonObjectSchema.builder()
+                                                                                                .addProperties(
+                                                                                                        new LinkedHashMap<>() {
+                                                                                                            {
+                                                                                                                put(
+                                                                                                                        "year",
+                                                                                                                        new JsonIntegerSchema());
+                                                                                                                put(
+                                                                                                                        "month",
+                                                                                                                        new JsonIntegerSchema());
+                                                                                                                put(
+                                                                                                                        "day",
+                                                                                                                        new JsonIntegerSchema());
+                                                                                                            }
+                                                                                                        })
+                                                                                                .required(
+                                                                                                        "year", "month",
+                                                                                                        "day")
+                                                                                                .build());
+                                                                                put(
+                                                                                        "time",
+                                                                                        JsonObjectSchema.builder()
+                                                                                                .addProperties(
+                                                                                                        new LinkedHashMap<>() {
+                                                                                                            {
+                                                                                                                put(
+                                                                                                                        "hour",
+                                                                                                                        new JsonIntegerSchema());
+                                                                                                                put(
+                                                                                                                        "minute",
+                                                                                                                        new JsonIntegerSchema());
+                                                                                                                put(
+                                                                                                                        "second",
+                                                                                                                        new JsonIntegerSchema());
+                                                                                                                put(
+                                                                                                                        "nano",
+                                                                                                                        new JsonIntegerSchema());
+                                                                                                            }
+                                                                                                        })
+                                                                                                .required(
+                                                                                                        "hour",
+                                                                                                        "minute",
+                                                                                                        "second",
+                                                                                                        "nano")
+                                                                                                .build());
+                                                                            }
+                                                                        })
                                                                         .required("date", "time")
                                                                         .build());
                                                     }
@@ -889,7 +861,6 @@ public abstract class AbstractAiServiceWithJsonSchemaIT {
                         .build());
         verify(model).supportedCapabilities();
     }
-
 
     interface PersonExtractor14 {
 
@@ -1001,10 +972,8 @@ public abstract class AbstractAiServiceWithJsonSchemaIT {
                                                                         "children",
                                                                         JsonArraySchema.builder()
                                                                                 .items(
-                                                                                        JsonReferenceSchema
-                                                                                                .builder()
-                                                                                                .reference(
-                                                                                                        reference)
+                                                                                        JsonReferenceSchema.builder()
+                                                                                                .reference(reference)
                                                                                                 .build())
                                                                                 .build())
                                                                 .required("name", "children")
@@ -1036,7 +1005,8 @@ public abstract class AbstractAiServiceWithJsonSchemaIT {
 
         PersonExtractor16 personExtractor = AiServices.create(PersonExtractor16.class, model);
 
-        String text = """
+        String text =
+                """
                 Klaus can be identified by the following IDs:
                 - 12345
                 - 567b229a-6b0a-4f1e-9006-448cd9dfbfda

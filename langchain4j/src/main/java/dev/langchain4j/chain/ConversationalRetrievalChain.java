@@ -1,5 +1,8 @@
 package dev.langchain4j.chain;
 
+import static dev.langchain4j.internal.Utils.getOrDefault;
+import static dev.langchain4j.internal.ValidationUtils.ensureNotNull;
+
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.memory.ChatMemory;
@@ -12,9 +15,6 @@ import dev.langchain4j.rag.RetrievalAugmentor;
 import dev.langchain4j.rag.content.retriever.ContentRetriever;
 import dev.langchain4j.rag.query.Metadata;
 import dev.langchain4j.service.AiServices;
-
-import static dev.langchain4j.internal.Utils.getOrDefault;
-import static dev.langchain4j.internal.ValidationUtils.ensureNotNull;
 
 /**
  * A chain for conversing with a specified {@link ChatLanguageModel}
@@ -31,21 +31,18 @@ public class ConversationalRetrievalChain implements Chain<String, String> {
     private final ChatMemory chatMemory;
     private final RetrievalAugmentor retrievalAugmentor;
 
-    public ConversationalRetrievalChain(ChatLanguageModel chatLanguageModel,
-                                        ChatMemory chatMemory,
-                                        ContentRetriever contentRetriever) {
+    public ConversationalRetrievalChain(
+            ChatLanguageModel chatLanguageModel, ChatMemory chatMemory, ContentRetriever contentRetriever) {
         this(
                 chatLanguageModel,
                 chatMemory,
                 DefaultRetrievalAugmentor.builder()
                         .contentRetriever(contentRetriever)
-                        .build()
-        );
+                        .build());
     }
 
-    public ConversationalRetrievalChain(ChatLanguageModel chatLanguageModel,
-                                        ChatMemory chatMemory,
-                                        RetrievalAugmentor retrievalAugmentor) {
+    public ConversationalRetrievalChain(
+            ChatLanguageModel chatLanguageModel, ChatMemory chatMemory, RetrievalAugmentor retrievalAugmentor) {
         this.chatLanguageModel = ensureNotNull(chatLanguageModel, "chatLanguageModel");
         this.chatMemory = getOrDefault(chatMemory, () -> MessageWindowChatMemory.withMaxMessages(10));
         this.retrievalAugmentor = ensureNotNull(retrievalAugmentor, "retrievalAugmentor");

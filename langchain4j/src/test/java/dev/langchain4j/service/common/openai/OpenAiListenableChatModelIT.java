@@ -1,5 +1,7 @@
 package dev.langchain4j.service.common.openai;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.exception.AuthenticationException;
@@ -13,13 +15,10 @@ import dev.langchain4j.model.chat.request.ChatRequestParameters;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openai.OpenAiChatRequestParameters;
-import org.junit.jupiter.api.Test;
-
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 class OpenAiListenableChatModelIT { // TODO extract to ListenableChatModelIT
 
@@ -79,10 +78,8 @@ class OpenAiListenableChatModelIT { // TODO extract to ListenableChatModelIT
                 .seed(5)
                 .build();
 
-        ChatRequest chatRequest = ChatRequest.builder()
-                .messages(messages)
-                .parameters(parameters)
-                .build();
+        ChatRequest chatRequest =
+                ChatRequest.builder().messages(messages).parameters(parameters).build();
 
         OpenAiChatRequestParameters expectedParameters = OpenAiChatRequestParameters.builder()
                 .modelName("gpt-4o-mini")
@@ -101,7 +98,8 @@ class OpenAiListenableChatModelIT { // TODO extract to ListenableChatModelIT
         assertThat(listener.onResponseCalledTimes).hasValue(1);
         assertThat(listener.onErrorCalledTimes).hasValue(0);
 
-        assertThat(listener.requestContextReference.get().chatRequest().parameters()).isEqualTo(expectedParameters);
+        assertThat(listener.requestContextReference.get().chatRequest().parameters())
+                .isEqualTo(expectedParameters);
         assertThat(listener.responseContextReference.get().chatResponse()).isEqualTo(chatResponse);
     }
 
@@ -132,7 +130,8 @@ class OpenAiListenableChatModelIT { // TODO extract to ListenableChatModelIT
         }
 
         // then
-        Throwable exceptionReportedToListener = listener.errorContextReference.get().error();
+        Throwable exceptionReportedToListener =
+                listener.errorContextReference.get().error();
         assertThat(exceptionReportedToListener).isExactlyInstanceOf(AuthenticationException.class);
         assertThat(thrownException).isSameAs(exceptionReportedToListener);
     }

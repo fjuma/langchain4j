@@ -1,15 +1,14 @@
 package dev.langchain4j.service.common.openai;
 
-import dev.langchain4j.model.chat.ChatLanguageModel;
-import dev.langchain4j.model.openai.OpenAiChatModel;
-import dev.langchain4j.service.common.AbstractAiServiceWithToolsIT;
-import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
-
-import java.util.List;
-
 import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
+
+import dev.langchain4j.model.chat.ChatLanguageModel;
+import dev.langchain4j.model.openai.OpenAiChatModel;
+import dev.langchain4j.service.common.AbstractAiServiceWithToolsIT;
+import java.util.List;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 // TODO move to langchain4j-open-ai module once cyclic dependency is resolved
 @EnabledIfEnvironmentVariable(named = "OPENAI_API_KEY", matches = ".+")
@@ -36,8 +35,7 @@ class OpenAiAiServiceWithToolsIT extends AbstractAiServiceWithToolsIT {
                         .temperature(0.0)
                         .logRequests(true)
                         .logResponses(true)
-                        .build()
-        );
+                        .build());
     }
 
     @Override

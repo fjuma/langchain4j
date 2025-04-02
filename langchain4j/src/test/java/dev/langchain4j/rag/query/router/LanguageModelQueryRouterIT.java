@@ -1,9 +1,16 @@
 package dev.langchain4j.rag.query.router;
 
+import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.rag.content.retriever.ContentRetriever;
 import dev.langchain4j.rag.query.Query;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -11,14 +18,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.stream.Stream;
-
-import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
-import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)
 @EnabledIfEnvironmentVariable(named = "OPENAI_API_KEY", matches = ".+")
@@ -92,17 +91,15 @@ class LanguageModelQueryRouterIT {
 
     static Stream<Arguments> models() {
         return Stream.of(
-                Arguments.of(
-                        OpenAiChatModel.builder()
-                                .baseUrl(System.getenv("OPENAI_BASE_URL"))
-                                .apiKey(System.getenv("OPENAI_API_KEY"))
-                                .organizationId(System.getenv("OPENAI_ORGANIZATION_ID"))
-                                .modelName(GPT_4_O_MINI)
-                                .logRequests(true)
-                                .logResponses(true)
-                                .build()
-                )
+                Arguments.of(OpenAiChatModel.builder()
+                        .baseUrl(System.getenv("OPENAI_BASE_URL"))
+                        .apiKey(System.getenv("OPENAI_API_KEY"))
+                        .organizationId(System.getenv("OPENAI_ORGANIZATION_ID"))
+                        .modelName(GPT_4_O_MINI)
+                        .logRequests(true)
+                        .logResponses(true)
+                        .build())
                 // TODO add more models
-        );
+                );
     }
 }
