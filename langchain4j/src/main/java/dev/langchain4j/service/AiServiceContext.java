@@ -31,6 +31,8 @@ public class AiServiceContext {
 
     public Function<Object, Optional<String>> systemMessageProvider = DEFAULT_MESSAGE_PROVIDER;
 
+    public boolean isReactAgent;
+
     public AiServiceContext(Class<?> aiServiceClass) {
         this.aiServiceClass = aiServiceClass;
     }
@@ -41,5 +43,9 @@ public class AiServiceContext {
 
     public ChatMemory chatMemory(Object memoryId) {
         return chatMemories.computeIfAbsent(memoryId, ignored -> chatMemoryProvider.get(memoryId));
+    }
+
+    public boolean isReactAgent() {
+        return isReactAgent;
     }
 }

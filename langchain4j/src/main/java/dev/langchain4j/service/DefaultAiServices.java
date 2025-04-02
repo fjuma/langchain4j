@@ -9,6 +9,7 @@ import static dev.langchain4j.service.TypeUtils.typeHasRawClass;
 import static dev.langchain4j.service.output.JsonSchemas.jsonSchemaFrom;
 import static dev.langchain4j.spi.ServiceHelper.loadFactories;
 
+import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
@@ -51,9 +52,13 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 class DefaultAiServices<T> extends AiServices<T> {
 
+    private static final Pattern REACT_PATTERN =
+            Pattern.compile("\\s*Thought:\\s*(.*)?\\n+Action:\\s*([^\\n\\(\\) ]+).*?\\n+Action Input:\\s*(.*)");
     private final ServiceOutputParser serviceOutputParser = new ServiceOutputParser();
     private final Collection<TokenStreamAdapter> tokenStreamAdapters = loadFactories(TokenStreamAdapter.class);
 
@@ -216,6 +221,36 @@ class DefaultAiServices<T> extends AiServices<T> {
 
                         verifyModerationIfNeeded(moderationFuture);
 
+                        if (context.isReactAgent) {
+                            Matcher reactPatternMatcher = REACT_PATTERN.matcher(
+                                    chatResponse.aiMessage().text());
+                            if (reactPatternMatcher.find()) {
+                                // parse required tool call
+                                String action = reactPatternMatcher.group(2);
+                                String actionInput = reactPatternMatcher.group(3);
+                                ToolExecutionRequest reactToolExecutionRequest = ToolExecutionRequest.builder()
+                                        .name(action)
+                                        .arguments(actionInput)
+                                        .build();
+
+                                // add the required tool call to the tool execution requests
+                                List<ToolExecutionRequest> toolExecutionRequests =
+                                        chatResponse.aiMessage().hasToolExecutionRequests()
+                                                ? chatResponse.aiMessage().toolExecutionRequests()
+                                                : new ArrayList<>();
+                                toolExecutionRequests.add(reactToolExecutionRequest);
+                                AiMessage aiMessageWithTool =
+                                        AiMessage.from(chatResponse.aiMessage().text(), toolExecutionRequests);
+
+                                chatResponse = ChatResponse.builder()
+                                        .aiMessage(aiMessageWithTool)
+                                        .tokenUsage(chatResponse.tokenUsage())
+                                        .metadata(chatResponse.metadata())
+                                        .finishReason(chatResponse.finishReason())
+                                        .build();
+                            }
+                        }
+
                         ToolExecutionResult toolExecutionResult = context.toolService.executeInferenceAndToolsLoop(
                                 chatResponse,
                                 parameters,
@@ -223,7 +258,8 @@ class DefaultAiServices<T> extends AiServices<T> {
                                 context.chatModel,
                                 context.hasChatMemory() ? context.chatMemory(memoryId) : null,
                                 memoryId,
-                                toolExecutionContext.toolExecutors());
+                                toolExecutionContext.toolExecutors(),
+                                context.isReactAgent);
 
                         chatResponse = toolExecutionResult.chatResponse();
                         FinishReason finishReason = chatResponse.metadata().finishReason();
