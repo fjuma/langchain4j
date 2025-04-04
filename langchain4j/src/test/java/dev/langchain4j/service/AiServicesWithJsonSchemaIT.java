@@ -1,5 +1,14 @@
 package dev.langchain4j.service;
 
+import static dev.langchain4j.data.message.UserMessage.userMessage;
+import static dev.langchain4j.internal.Utils.generateUUIDFrom;
+import static dev.langchain4j.model.chat.request.ResponseFormatType.JSON;
+import static dev.langchain4j.service.AiServicesWithJsonSchemaIT.PersonExtractor3.MaritalStatus.SINGLE;
+import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.chat.request.ChatRequest;
 import dev.langchain4j.model.chat.request.ResponseFormat;
@@ -11,9 +20,6 @@ import dev.langchain4j.model.chat.request.json.JsonReferenceSchema;
 import dev.langchain4j.model.chat.request.json.JsonSchema;
 import dev.langchain4j.model.chat.request.json.JsonSchemaElement;
 import dev.langchain4j.model.chat.request.json.JsonStringSchema;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledIf;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -22,15 +28,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-
-import static dev.langchain4j.data.message.UserMessage.userMessage;
-import static dev.langchain4j.internal.Utils.generateUUIDFrom;
-import static dev.langchain4j.model.chat.request.ResponseFormatType.JSON;
-import static dev.langchain4j.service.AiServicesWithJsonSchemaIT.PersonExtractor3.MaritalStatus.SINGLE;
-import static java.util.Collections.singletonList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIf;
 
 public abstract class AiServicesWithJsonSchemaIT {
     // TODO move to common, use parameterized tests
@@ -502,11 +501,9 @@ public abstract class AiServicesWithJsonSchemaIT {
     @Test
     protected void should_extract_pojo_with_set_of_pojos() {
 
-        record Pet(String name) {
-        }
+        record Pet(String name) {}
 
-        record Person(String name, Set<Pet> pets) {
-        }
+        record Person(String name, Set<Pet> pets) {}
 
         interface PersonExtractor {
 
@@ -526,10 +523,7 @@ public abstract class AiServicesWithJsonSchemaIT {
             Person person = personExtractor.extractPersonFrom(text);
 
             // then
-            assertThat(person).isEqualTo(new Person("Klaus", Set.of(
-                    new Pet("Peanut"),
-                    new Pet("Muffin")
-            )));
+            assertThat(person).isEqualTo(new Person("Klaus", Set.of(new Pet("Peanut"), new Pet("Muffin"))));
 
             verify(model)
                     .chat(ChatRequest.builder()
@@ -921,7 +915,6 @@ public abstract class AiServicesWithJsonSchemaIT {
         }
     }
 
-
     interface PersonExtractor14 {
 
         class Person {
@@ -1072,7 +1065,8 @@ public abstract class AiServicesWithJsonSchemaIT {
 
             PersonExtractor16 personExtractor = AiServices.create(PersonExtractor16.class, model);
 
-            String text = """
+            String text =
+                    """
                     Klaus can be identified by the following IDs:
                     - 12345
                     - 567b229a-6b0a-4f1e-9006-448cd9dfbfda

@@ -2,7 +2,6 @@ package dev.langchain4j.service.common.openai;
 
 import dev.langchain4j.http.client.HttpClient;
 import dev.langchain4j.http.client.HttpClientBuilder;
-
 import java.time.Duration;
 
 public class MockHttpClientBuilder implements HttpClientBuilder {

@@ -1,5 +1,12 @@
 package dev.langchain4j.service.output;
 
+import static dev.langchain4j.internal.ValidationUtils.ensureNotNull;
+import static dev.langchain4j.service.IllegalConfigurationException.illegalConfiguration;
+import static dev.langchain4j.service.TypeUtils.getRawClass;
+import static dev.langchain4j.service.TypeUtils.resolveFirstGenericParameterClass;
+import static dev.langchain4j.service.TypeUtils.typeHasRawClass;
+import static java.lang.String.format;
+
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.internal.Json;
 import dev.langchain4j.model.output.Response;
@@ -7,7 +14,6 @@ import dev.langchain4j.model.output.structured.Description;
 import dev.langchain4j.service.Result;
 import dev.langchain4j.service.TokenStream;
 import dev.langchain4j.service.TypeUtils;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -19,13 +25,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static dev.langchain4j.service.IllegalConfigurationException.illegalConfiguration;
-import static dev.langchain4j.internal.ValidationUtils.ensureNotNull;
-import static dev.langchain4j.service.TypeUtils.getRawClass;
-import static dev.langchain4j.service.TypeUtils.resolveFirstGenericParameterClass;
-import static dev.langchain4j.service.TypeUtils.typeHasRawClass;
-import static java.lang.String.format;
 
 public class ServiceOutputParser {
 
@@ -111,9 +110,7 @@ public class ServiceOutputParser {
         if (outputParser.isPresent()) {
             String formatInstructions = outputParser.get().formatInstructions();
 
-            if (rawClass == List.class ||
-                    rawClass == Set.class ||
-                    rawClass.isEnum()) {
+            if (rawClass == List.class || rawClass == Set.class || rawClass.isEnum()) {
                 // In these cases complete instruction is already
                 // constructed by concrete output parsers.
                 return formatInstructions;
@@ -130,8 +127,8 @@ public class ServiceOutputParser {
     private void validateJsonStructure(String jsonStructure, Type returnType) {
         if (jsonStructure.replaceAll("\\s", "").equals("{}")) {
             if (returnType.toString().contains("reactor.core.publisher.Flux")) {
-                throw illegalConfiguration("Please import langchain4j-reactor module " +
-                        "if you wish to use Flux<String> as a method return type");
+                throw illegalConfiguration("Please import langchain4j-reactor module "
+                        + "if you wish to use Flux<String> as a method return type");
             }
             throw illegalConfiguration("Illegal method return type: " + returnType);
         }
@@ -178,7 +175,8 @@ public class ServiceOutputParser {
                 return format("array of %s", simpleNameOrJsonStructure((Class<?>) typeArguments[0], visited));
             }
         } else if (field.getType().isArray()) {
-            return format("array of %s", simpleNameOrJsonStructure(field.getType().getComponentType(), visited));
+            return format(
+                    "array of %s", simpleNameOrJsonStructure(field.getType().getComponentType(), visited));
         } else if (((Class<?>) type).isEnum()) {
             return "enum, must be one of " + Arrays.toString(((Class<?>) type).getEnumConstants());
         }

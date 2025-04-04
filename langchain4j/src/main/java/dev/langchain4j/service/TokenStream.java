@@ -4,7 +4,6 @@ import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.rag.RetrievalAugmentor;
 import dev.langchain4j.rag.content.Content;
 import dev.langchain4j.service.tool.ToolExecution;
-
 import java.util.List;
 import java.util.function.Consumer;
 

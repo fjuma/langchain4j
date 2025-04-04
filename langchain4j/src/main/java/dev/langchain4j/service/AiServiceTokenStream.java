@@ -1,5 +1,10 @@
 package dev.langchain4j.service;
 
+import static dev.langchain4j.internal.Utils.copyIfNotNull;
+import static dev.langchain4j.internal.ValidationUtils.ensureNotEmpty;
+import static dev.langchain4j.internal.ValidationUtils.ensureNotNull;
+import static java.util.Collections.emptyList;
+
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.model.chat.request.ChatRequest;
@@ -9,16 +14,10 @@ import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.rag.content.Content;
 import dev.langchain4j.service.tool.ToolExecution;
 import dev.langchain4j.service.tool.ToolExecutor;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-
-import static dev.langchain4j.internal.Utils.copyIfNotNull;
-import static dev.langchain4j.internal.ValidationUtils.ensureNotEmpty;
-import static dev.langchain4j.internal.ValidationUtils.ensureNotNull;
-import static java.util.Collections.emptyList;
 
 public class AiServiceTokenStream implements TokenStream {
 
@@ -42,12 +41,13 @@ public class AiServiceTokenStream implements TokenStream {
     private int onErrorInvoked;
     private int ignoreErrorsInvoked;
 
-    public AiServiceTokenStream(List<ChatMessage> messages,
-                                List<ToolSpecification> toolSpecifications,
-                                Map<String, ToolExecutor> toolExecutors,
-                                List<Content> retrievedContents,
-                                AiServiceContext context,
-                                Object memoryId) {
+    public AiServiceTokenStream(
+            List<ChatMessage> messages,
+            List<ToolSpecification> toolSpecifications,
+            Map<String, ToolExecutor> toolExecutors,
+            List<Content> retrievedContents,
+            AiServiceContext context,
+            Object memoryId) {
         this.messages = ensureNotEmpty(messages, "messages");
         this.toolSpecifications = copyIfNotNull(toolSpecifications);
         this.toolExecutors = copyIfNotNull(toolExecutors);
@@ -118,8 +118,7 @@ public class AiServiceTokenStream implements TokenStream {
                 initTemporaryMemory(context, messages),
                 new TokenUsage(),
                 toolSpecifications,
-                toolExecutors
-        );
+                toolExecutors);
 
         if (contentsHandler != null && retrievedContents != null) {
             contentsHandler.accept(retrievedContents);
@@ -142,8 +141,8 @@ public class AiServiceTokenStream implements TokenStream {
             throw new IllegalConfigurationException("onToolExecuted can be invoked on TokenStream at most 1 time");
         }
         if (onErrorInvoked + ignoreErrorsInvoked != 1) {
-            throw new IllegalConfigurationException("One of [onError, ignoreErrors] " +
-                    "must be invoked on TokenStream exactly 1 time");
+            throw new IllegalConfigurationException(
+                    "One of [onError, ignoreErrors] " + "must be invoked on TokenStream exactly 1 time");
         }
     }
 

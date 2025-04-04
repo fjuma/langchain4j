@@ -1,20 +1,5 @@
 package dev.langchain4j.service.common;
 
-import dev.langchain4j.data.message.UserMessage;
-import dev.langchain4j.model.chat.StreamingChatLanguageModel;
-import dev.langchain4j.model.chat.request.ChatRequest;
-import dev.langchain4j.model.chat.response.ChatResponse;
-import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
-import dev.langchain4j.model.output.TokenUsage;
-import dev.langchain4j.service.AiServices;
-import dev.langchain4j.service.TokenStream;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
-
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-
 import static dev.langchain4j.model.output.FinishReason.STOP;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -23,6 +8,20 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+
+import dev.langchain4j.data.message.UserMessage;
+import dev.langchain4j.model.chat.StreamingChatLanguageModel;
+import dev.langchain4j.model.chat.request.ChatRequest;
+import dev.langchain4j.model.chat.response.ChatResponse;
+import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
+import dev.langchain4j.model.output.TokenUsage;
+import dev.langchain4j.service.AiServices;
+import dev.langchain4j.service.TokenStream;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * This test makes sure that all {@link StreamingChatLanguageModel} implementations behave consistently
@@ -55,7 +54,8 @@ public abstract class AbstractStreamingAiServiceIT {
 
         String userMessage = "What is the capital of Germany?";
 
-        assistant.chat(userMessage)
+        assistant
+                .chat(userMessage)
                 .onPartialResponse(answerBuilder::append)
                 .onCompleteResponse(chatResponse -> {
                     futureAnswer.complete(answerBuilder.toString());
@@ -82,10 +82,12 @@ public abstract class AbstractStreamingAiServiceIT {
             assertThat(chatResponse.metadata().finishReason()).isEqualTo(STOP);
         }
 
-        verify(model).chat(
-                eq(ChatRequest.builder().messages(UserMessage.from(userMessage)).build()),
-                any(StreamingChatResponseHandler.class)
-        );
+        verify(model)
+                .chat(
+                        eq(ChatRequest.builder()
+                                .messages(UserMessage.from(userMessage))
+                                .build()),
+                        any(StreamingChatResponseHandler.class));
     }
 
     // TODO test threads

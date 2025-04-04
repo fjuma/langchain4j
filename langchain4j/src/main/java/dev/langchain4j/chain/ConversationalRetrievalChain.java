@@ -1,5 +1,8 @@
 package dev.langchain4j.chain;
 
+import static dev.langchain4j.internal.Utils.getOrDefault;
+import static dev.langchain4j.internal.ValidationUtils.ensureNotNull;
+
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.data.segment.TextSegment;
@@ -17,9 +20,6 @@ import dev.langchain4j.rag.query.Metadata;
 import dev.langchain4j.retriever.Retriever;
 import dev.langchain4j.service.AiServices;
 
-import static dev.langchain4j.internal.Utils.getOrDefault;
-import static dev.langchain4j.internal.ValidationUtils.ensureNotNull;
-
 /**
  * A chain for conversing with a specified {@link ChatLanguageModel}
  * based on the information retrieved by a specified {@link ContentRetriever}.
@@ -35,21 +35,18 @@ public class ConversationalRetrievalChain implements Chain<String, String> {
     private final ChatMemory chatMemory;
     private final RetrievalAugmentor retrievalAugmentor;
 
-    public ConversationalRetrievalChain(ChatLanguageModel chatLanguageModel,
-                                        ChatMemory chatMemory,
-                                        ContentRetriever contentRetriever) {
+    public ConversationalRetrievalChain(
+            ChatLanguageModel chatLanguageModel, ChatMemory chatMemory, ContentRetriever contentRetriever) {
         this(
                 chatLanguageModel,
                 chatMemory,
                 DefaultRetrievalAugmentor.builder()
                         .contentRetriever(contentRetriever)
-                        .build()
-        );
+                        .build());
     }
 
-    public ConversationalRetrievalChain(ChatLanguageModel chatLanguageModel,
-                                        ChatMemory chatMemory,
-                                        RetrievalAugmentor retrievalAugmentor) {
+    public ConversationalRetrievalChain(
+            ChatLanguageModel chatLanguageModel, ChatMemory chatMemory, RetrievalAugmentor retrievalAugmentor) {
         this.chatLanguageModel = ensureNotNull(chatLanguageModel, "chatLanguageModel");
         this.chatMemory = getOrDefault(chatMemory, () -> MessageWindowChatMemory.withMaxMessages(10));
         this.retrievalAugmentor = ensureNotNull(retrievalAugmentor, "retrievalAugmentor");
@@ -59,10 +56,11 @@ public class ConversationalRetrievalChain implements Chain<String, String> {
      * @deprecated Please use another constructor with a new {@link ContentRetriever} instead.
      */
     @Deprecated(forRemoval = true)
-    public ConversationalRetrievalChain(ChatLanguageModel chatLanguageModel,
-                                        ChatMemory chatMemory,
-                                        PromptTemplate promptTemplate,
-                                        Retriever<TextSegment> retriever) {
+    public ConversationalRetrievalChain(
+            ChatLanguageModel chatLanguageModel,
+            ChatMemory chatMemory,
+            PromptTemplate promptTemplate,
+            Retriever<TextSegment> retriever) {
         this(
                 chatLanguageModel,
                 chatMemory,
@@ -71,8 +69,7 @@ public class ConversationalRetrievalChain implements Chain<String, String> {
                         .contentInjector(DefaultContentInjector.builder()
                                 .promptTemplate(toPromptTemplateWithNewVariableNames(promptTemplate))
                                 .build())
-                        .build()
-        );
+                        .build());
     }
 
     @Override
@@ -110,6 +107,7 @@ public class ConversationalRetrievalChain implements Chain<String, String> {
 
         @Deprecated(forRemoval = true)
         private dev.langchain4j.retriever.Retriever<TextSegment> retriever;
+
         @Deprecated(forRemoval = true)
         private PromptTemplate promptTemplate;
 
@@ -178,17 +176,14 @@ public class ConversationalRetrievalChain implements Chain<String, String> {
 
     private static PromptTemplate toPromptTemplateWithNewVariableNames(PromptTemplate oldPromptTemplate) {
         if (oldPromptTemplate != null) {
-            return PromptTemplate.from(oldPromptTemplate.template()
+            return PromptTemplate.from(oldPromptTemplate
+                    .template()
                     .replaceAll("\\{\\{question}}", "{{userMessage}}")
-                    .replaceAll("\\{\\{information}}", "{{contents}}")
-            );
+                    .replaceAll("\\{\\{information}}", "{{contents}}"));
         }
 
-        return PromptTemplate.from(
-                "Answer the following question to the best of your ability: {{userMessage}}\n" +
-                        "\n" +
-                        "Base your answer on the following information:\n" +
-                        "{{contents}}"
-        );
+        return PromptTemplate.from("Answer the following question to the best of your ability: {{userMessage}}\n" + "\n"
+                + "Base your answer on the following information:\n"
+                + "{{contents}}");
     }
 }

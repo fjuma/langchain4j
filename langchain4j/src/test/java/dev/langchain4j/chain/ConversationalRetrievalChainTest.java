@@ -55,7 +55,8 @@ class ConversationalRetrievalChainTest {
 
     @BeforeEach
     void beforeEach() {
-        when(chatLanguageModel.chat(anyList())).thenReturn(ChatResponse.builder().aiMessage(aiMessage(ANSWER)).build());
+        when(chatLanguageModel.chat(anyList()))
+                .thenReturn(ChatResponse.builder().aiMessage(aiMessage(ANSWER)).build());
     }
 
     @Test

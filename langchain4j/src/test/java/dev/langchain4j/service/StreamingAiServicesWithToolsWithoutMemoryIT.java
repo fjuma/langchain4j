@@ -1,5 +1,14 @@
 package dev.langchain4j.service;
 
+import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
+import static dev.langchain4j.model.output.FinishReason.STOP;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
 import dev.langchain4j.data.message.ChatMessage;
@@ -10,6 +19,9 @@ import dev.langchain4j.model.chat.request.ChatRequest;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 import dev.langchain4j.model.output.TokenUsage;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,19 +29,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-
-import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
-import static dev.langchain4j.model.output.FinishReason.STOP;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @ExtendWith(MockitoExtension.class)
 @EnabledIfEnvironmentVariable(named = "OPENAI_API_KEY", matches = ".+")
@@ -69,8 +68,7 @@ class StreamingAiServicesWithToolsWithoutMemoryIT {
         // given
         Calculator calculator = spy(new Calculator());
 
-        Assistant assistant = AiServices
-                .builder(Assistant.class)
+        Assistant assistant = AiServices.builder(Assistant.class)
                 .streamingChatLanguageModel(spyModel)
                 .tools(calculator)
                 .build();
@@ -79,7 +77,8 @@ class StreamingAiServicesWithToolsWithoutMemoryIT {
 
         // when
         CompletableFuture<ChatResponse> future = new CompletableFuture<>();
-        assistant.chat(userMessage)
+        assistant
+                .chat(userMessage)
                 .onPartialResponse(ignored -> {})
                 .onCompleteResponse(future::complete)
                 .onError(future::completeExceptionally)
@@ -105,12 +104,14 @@ class StreamingAiServicesWithToolsWithoutMemoryIT {
         List<ChatMessage> firstGenerateSendMessages = allChatRequests.get(0).messages();
         assertThat(firstGenerateSendMessages).hasSize(1);
         assertThat(firstGenerateSendMessages.get(0).type()).isEqualTo(ChatMessageType.USER);
-        assertThat(((UserMessage) firstGenerateSendMessages.get(0)).singleText()).isEqualTo(userMessage);
+        assertThat(((UserMessage) firstGenerateSendMessages.get(0)).singleText())
+                .isEqualTo(userMessage);
 
         List<ChatMessage> secondGenerateSendMessages = allChatRequests.get(1).messages();
         assertThat(secondGenerateSendMessages).hasSize(3);
         assertThat(secondGenerateSendMessages.get(0).type()).isEqualTo(ChatMessageType.USER);
-        assertThat(((UserMessage) secondGenerateSendMessages.get(0)).singleText()).isEqualTo(userMessage);
+        assertThat(((UserMessage) secondGenerateSendMessages.get(0)).singleText())
+                .isEqualTo(userMessage);
         assertThat(secondGenerateSendMessages.get(1).type()).isEqualTo(ChatMessageType.AI);
         assertThat(secondGenerateSendMessages.get(2).type()).isEqualTo(ChatMessageType.TOOL_EXECUTION_RESULT);
     }
@@ -121,8 +122,7 @@ class StreamingAiServicesWithToolsWithoutMemoryIT {
         // given
         Calculator calculator = spy(new Calculator());
 
-        StreamingChatLanguageModel model = OpenAiStreamingChatModel
-                .builder()
+        StreamingChatLanguageModel model = OpenAiStreamingChatModel.builder()
                 .baseUrl(System.getenv("OPENAI_BASE_URL"))
                 .apiKey(System.getenv("OPENAI_API_KEY"))
                 .organizationId(System.getenv("OPENAI_ORGANIZATION_ID"))
@@ -135,8 +135,7 @@ class StreamingAiServicesWithToolsWithoutMemoryIT {
 
         StreamingChatLanguageModel spyModel = spy(model);
 
-        Assistant assistant = AiServices
-                .builder(Assistant.class)
+        Assistant assistant = AiServices.builder(Assistant.class)
                 .streamingChatLanguageModel(spyModel)
                 .tools(calculator)
                 .build();
@@ -145,7 +144,8 @@ class StreamingAiServicesWithToolsWithoutMemoryIT {
 
         // when
         CompletableFuture<ChatResponse> future = new CompletableFuture<>();
-        assistant.chat(userMessage)
+        assistant
+                .chat(userMessage)
                 .onPartialResponse(ignored -> {})
                 .onCompleteResponse(future::complete)
                 .onError(future::completeExceptionally)
@@ -172,19 +172,22 @@ class StreamingAiServicesWithToolsWithoutMemoryIT {
         List<ChatMessage> firstGenerateSendMessages = allChatRequests.get(0).messages();
         assertThat(firstGenerateSendMessages).hasSize(1);
         assertThat(firstGenerateSendMessages.get(0).type()).isEqualTo(ChatMessageType.USER);
-        assertThat(((UserMessage) firstGenerateSendMessages.get(0)).singleText()).isEqualTo(userMessage);
+        assertThat(((UserMessage) firstGenerateSendMessages.get(0)).singleText())
+                .isEqualTo(userMessage);
 
         List<ChatMessage> secondGenerateSendMessages = allChatRequests.get(1).messages();
         assertThat(secondGenerateSendMessages).hasSize(3);
         assertThat(secondGenerateSendMessages.get(0).type()).isEqualTo(ChatMessageType.USER);
-        assertThat(((UserMessage) secondGenerateSendMessages.get(0)).singleText()).isEqualTo(userMessage);
+        assertThat(((UserMessage) secondGenerateSendMessages.get(0)).singleText())
+                .isEqualTo(userMessage);
         assertThat(secondGenerateSendMessages.get(1).type()).isEqualTo(ChatMessageType.AI);
         assertThat(secondGenerateSendMessages.get(2).type()).isEqualTo(ChatMessageType.TOOL_EXECUTION_RESULT);
 
         List<ChatMessage> thirdGenerateSendMessages = allChatRequests.get(2).messages();
         assertThat(thirdGenerateSendMessages).hasSize(5);
         assertThat(thirdGenerateSendMessages.get(0).type()).isEqualTo(ChatMessageType.USER);
-        assertThat(((UserMessage) thirdGenerateSendMessages.get(0)).singleText()).isEqualTo(userMessage);
+        assertThat(((UserMessage) thirdGenerateSendMessages.get(0)).singleText())
+                .isEqualTo(userMessage);
         assertThat(thirdGenerateSendMessages.get(1).type()).isEqualTo(ChatMessageType.AI);
         assertThat(thirdGenerateSendMessages.get(2).type()).isEqualTo(ChatMessageType.TOOL_EXECUTION_RESULT);
         assertThat(thirdGenerateSendMessages.get(3).type()).isEqualTo(ChatMessageType.AI);
@@ -197,8 +200,7 @@ class StreamingAiServicesWithToolsWithoutMemoryIT {
         // given
         Calculator calculator = spy(new Calculator());
 
-        Assistant assistant = AiServices
-                .builder(Assistant.class)
+        Assistant assistant = AiServices.builder(Assistant.class)
                 .streamingChatLanguageModel(spyModel)
                 .tools(calculator)
                 .build();
@@ -207,7 +209,8 @@ class StreamingAiServicesWithToolsWithoutMemoryIT {
 
         // when
         CompletableFuture<ChatResponse> future = new CompletableFuture<>();
-        assistant.chat(userMessage)
+        assistant
+                .chat(userMessage)
                 .onPartialResponse(ignored -> {})
                 .onCompleteResponse(future::complete)
                 .onError(future::completeExceptionally)
@@ -234,12 +237,14 @@ class StreamingAiServicesWithToolsWithoutMemoryIT {
         List<ChatMessage> firstGenerateSendMessages = allChatRequests.get(0).messages();
         assertThat(firstGenerateSendMessages).hasSize(1);
         assertThat(firstGenerateSendMessages.get(0).type()).isEqualTo(ChatMessageType.USER);
-        assertThat(((UserMessage) firstGenerateSendMessages.get(0)).singleText()).isEqualTo(userMessage);
+        assertThat(((UserMessage) firstGenerateSendMessages.get(0)).singleText())
+                .isEqualTo(userMessage);
 
         List<ChatMessage> secondGenerateSendMessages = allChatRequests.get(1).messages();
         assertThat(secondGenerateSendMessages).hasSize(4);
         assertThat(secondGenerateSendMessages.get(0).type()).isEqualTo(ChatMessageType.USER);
-        assertThat(((UserMessage) secondGenerateSendMessages.get(0)).singleText()).isEqualTo(userMessage);
+        assertThat(((UserMessage) secondGenerateSendMessages.get(0)).singleText())
+                .isEqualTo(userMessage);
         assertThat(secondGenerateSendMessages.get(1).type()).isEqualTo(ChatMessageType.AI);
         assertThat(secondGenerateSendMessages.get(2).type()).isEqualTo(ChatMessageType.TOOL_EXECUTION_RESULT);
         assertThat(secondGenerateSendMessages.get(3).type()).isEqualTo(ChatMessageType.TOOL_EXECUTION_RESULT);
